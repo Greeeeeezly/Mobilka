@@ -1,0 +1,40 @@
+package com.example.lab3
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+class HomeFragment : Fragment() {
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+
+        val view = inflater.inflate(R.layout.fragment_home, container, false)
+
+
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
+
+
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.adapter = ChatAdapter(getChatItems())
+
+        return view
+    }
+
+
+    private fun getChatItems(): List<ChatItem> {
+
+        return listOf(
+            ChatItem("Иван", "Привет!", "12:00"),
+            ChatItem("Мария", "НЕ ПИШИ МНЕ БОЛЬШЕ!!!", "12:05"),
+            ChatItem("Алексей", "?", "15:10"),
+            ChatItem("Василий", "Когда за пивом?", "17:10")
+        )
+    }
+}
