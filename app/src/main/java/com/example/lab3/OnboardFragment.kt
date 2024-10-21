@@ -5,24 +5,31 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.lab3.databinding.FragmentOnboardBinding
 
 class OnboardFragment : Fragment() {
+    private lateinit var binding: FragmentOnboardBinding
+    private lateinit var registeredUsers: MutableList<User>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_onboard, container, false)
-        val descriptionTextView = view.findViewById<TextView>(R.id.descriptionTextView)
-        descriptionTextView.text = "Это Можнограм, можно всё, что не нельзя!"
-        val nextButton = view.findViewById<Button>(R.id.nextButton)
+    ): View {
+        registeredUsers = mutableListOf()
+
+        // Инициализация View Binding
+        binding = FragmentOnboardBinding.inflate(inflater, container, false)
+        val view = binding.root // Получаем корневое представление из View Binding
+
+        val nextButton: Button = binding.nextButton // Используем View Binding для доступа к кнопке
         nextButton.setOnClickListener {
-            (activity as MainActivity).replaceFragment(SignInFragment())
+            // Используем Safe Args для навигации
+            val action = OnboardFragmentDirections.actionOnboardFragmentToSignInFragment(registeredUsers.toTypedArray())
+            findNavController().navigate(action)
         }
 
         return view
     }
 }
-

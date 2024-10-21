@@ -1,55 +1,68 @@
 package com.example.lab3
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.lab3.databinding.FragmentOnboardBinding
+import com.example.lab3.databinding.FragmentSignupBinding
 
 class SignUpFragment : Fragment() {
 
-    private lateinit var nameEditText: EditText
-    private lateinit var emailEditText: EditText
-    private lateinit var passwordEditText: EditText
+    private lateinit var binding: FragmentSignupBinding
+
     private lateinit var registeredUsers: MutableList<User>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_signup, container, false)
+        // Инициализация View Binding
+        binding = FragmentSignupBinding.inflate(inflater, container, false)
 
-        registeredUsers = arguments?.getSerializable("registeredUsers") as? MutableList<User> ?: mutableListOf()
+        // Получение списка зарегистрированных пользователей через Safe Args
+        registeredUsers = arguments?.let {
+            SignUpFragmentArgs.fromBundle(it).registeredUsers.toMutableList()
+        } ?: mutableListOf()
 
-        nameEditText = view.findViewById(R.id.nameEditText)
-        emailEditText = view.findViewById(R.id.emailEditText)
-        passwordEditText = view.findViewById(R.id.passwordEditText)
+        // Установка обработчика нажатия на кнопку регистрации
+        binding.registerButton.setOnClickListener {
+            val name = binding.nameEditText.text.toString().trim()
+            val email = binding.emailEditText.text.toString().trim()
+            val password = binding.passwordEditText.text.toString().trim()
 
-        val registerButton = view.findViewById<Button>(R.id.registerButton)
-        registerButton.setOnClickListener {
-            val name = nameEditText.text.toString()
-            val email = emailEditText.text.toString()
-            val password = passwordEditText.text.toString()
+            if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(activity, "Пожалуйста, заполните все поля", Toast.LENGTH_SHORT)
+                    .show()
+                return@setOnClickListener
+            }
+
+            // Проверка, существует ли уже пользователь с таким email
+            if (registeredUsers.any { it.email.equals(email, ignoreCase = true) }) {
+                Toast.makeText(
+                    activity,
+                    "Пользователь с таким email уже существует",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
 
             val newUser = User(name, email, password)
             registeredUsers.add(newUser)
 
-            Toast.makeText(activity, "Пользователь $name зарегистрирован!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, "Пользователь $name зарегистрирован!", Toast.LENGTH_SHORT)
+                .show()
 
-            (activity as MainActivity).replaceFragment(SignInFragment().apply {
-                arguments = Bundle().apply {
-                    putString("registeredName", name)
-                    putSerializable("registeredUsers", ArrayList(registeredUsers))
-                }
-            })
+            // Переход на SignInFragment с передачей обновленного списка пользователей
+            val action = SignUpFragmentDirections.actionSignUpFragmentToSignInFragment(
+                registeredUsers.toTypedArray()
+            )
+            findNavController().navigate(action)
         }
 
-        return view
+        return binding?.root // Возврат корневого представления из View Binding
     }
 }
-

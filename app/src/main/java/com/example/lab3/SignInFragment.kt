@@ -1,56 +1,60 @@
 package com.example.lab3
-import android.app.Activity
-import android.content.Intent
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.lab3.databinding.FragmentOnboardBinding
+import com.example.lab3.databinding.FragmentSigninBinding
 
 class SignInFragment : Fragment() {
 
-    private lateinit var emailEditText: EditText
-    private lateinit var passwordEditText: EditText
+    private lateinit var binding: FragmentSigninBinding
+
     private lateinit var registeredUsers: MutableList<User>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_signin, container, false)
+        // Инициализация View Binding
+        binding = FragmentSigninBinding.inflate(inflater, container, false)
 
-        emailEditText = view.findViewById(R.id.emailEditText)
-        passwordEditText = view.findViewById(R.id.passwordEditText)
+        // Получение списка зарегистрированных пользователей через Safe Args
+        val args = SignInFragmentArgs.fromBundle(requireArguments())
+        registeredUsers = args.registeredUsers.toMutableList() ?: mutableListOf()
 
-        registeredUsers = arguments?.getSerializable("registeredUsers") as? MutableList<User> ?: mutableListOf()
+        binding.signInButton.setOnClickListener {
+            val email = binding.emailEditText.text.toString().trim()
+            val password = binding.passwordEditText.text.toString().trim()
 
-        val signInButton = view.findViewById<Button>(R.id.signInButton)
-        signInButton.setOnClickListener {
-            val email = emailEditText.text.toString()
-            val password = passwordEditText.text.toString()
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(activity, "Пожалуйста, заполните все поля", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-            val user = registeredUsers.find { it.email == email && it.password == password }
+            val user = registeredUsers.find { it.email.equals(email, ignoreCase = true) && it.password == password }
             if (user != null) {
                 Toast.makeText(activity, "Добро пожаловать, ${user.name}!", Toast.LENGTH_SHORT).show()
-                (activity as MainActivity).replaceFragment(HomeFragment())
+
+                // Переход на HomeFragment с использованием NavController
+                findNavController().navigate(R.id.action_signInFragment_to_homeFragment)
             } else {
                 Toast.makeText(activity, "Неверные данные", Toast.LENGTH_SHORT).show()
             }
         }
 
-        val signUpButton = view.findViewById<Button>(R.id.signUpButton)
-        signUpButton.setOnClickListener {
-            (activity as MainActivity).replaceFragment(SignUpFragment().apply {
-                arguments = Bundle().apply {
-                    putSerializable("registeredUsers", ArrayList(registeredUsers))
-                }
-            })
+        binding.signUpButton?.setOnClickListener {
+            // Переход на SignUpFragment с использованием NavController и передачей текущего списка пользователей
+            val action = SignInFragmentDirections.actionSignInFragmentToSignUpFragment(
+                registeredUsers.toTypedArray()
+            )
+            findNavController().navigate(action)
         }
 
-        return view
+        return binding?.root // Возврат корневого представления из View Binding
     }
 }
-

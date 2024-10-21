@@ -6,30 +6,27 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.lab3.databinding.FragmentHomeBinding
 
 class HomeFragment : Fragment() {
+
+    private lateinit var binding: FragmentHomeBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
+        // Инициализация View Binding
+        binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-        val view = inflater.inflate(R.layout.fragment_home, container, false)
+        // Настройка RecyclerView
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerView.adapter = ChatAdapter(getChatItems())
 
-
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
-
-
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = ChatAdapter(getChatItems())
-
-        return view
+        return binding.root
     }
 
-
     private fun getChatItems(): List<ChatItem> {
-
         return listOf(
             ChatItem("Иван", "Привет!", "12:00"),
             ChatItem("Мария", "НЕ ПИШИ МНЕ БОЛЬШЕ!!!", "12:05"),
@@ -37,4 +34,5 @@ class HomeFragment : Fragment() {
             ChatItem("Василий", "Когда за пивом?", "17:10")
         )
     }
+
 }

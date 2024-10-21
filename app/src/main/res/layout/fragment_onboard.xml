@@ -10,7 +10,7 @@
         android:id="@+id/descriptionTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Описание"
+        android:text="Это нельзяграмм - можно всё, что не запрещено"
         android:textSize="20sp"
         android:layout_marginBottom="24dp"
         android:gravity="center" />
@@ -19,5 +19,6 @@
         android:id="@+id/nextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Далее" />
+        android:text="Далее"
+        />
 </LinearLayout>
