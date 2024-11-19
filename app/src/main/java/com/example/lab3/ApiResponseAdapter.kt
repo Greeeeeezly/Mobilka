@@ -27,6 +27,9 @@ class ApiResponseAdapter(private var items: List<Character>) :
         notifyDataSetChanged()
     }
 
+    // Новый метод для получения текущих данных
+    fun getData(): List<Character> = items
+
     class ApiResponseViewHolder(private val binding: ListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

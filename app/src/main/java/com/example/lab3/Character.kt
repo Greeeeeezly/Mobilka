@@ -10,4 +10,10 @@ data class Character(
     val titles: List<String>,
     val aliases: List<String>,
     val playedBy: List<String>
-)
+
+
+) {
+    override fun toString(): String {
+        return "Character(name='$name', culture='$culture', born='$born', titles=$titles, aliases=$aliases, playedBy=$playedBy)"
+    }
+}

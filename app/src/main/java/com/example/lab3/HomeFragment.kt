@@ -28,6 +28,11 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.action_homeFragment_to_characterFragment)
         }
 
+        // Переход в SettingsFragment по клику на кнопку
+        binding.openSettingsFragmentButton.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_settingsFragment)
+        }
+
         return binding.root
     }
 

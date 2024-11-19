@@ -10,8 +10,11 @@
         <action
             android:id="@+id/action_homeFragment_to_characterFragment"
             app:destination="@id/characterFragment" />
-    </fragment>
+        <action
+            android:id="@+id/action_homeFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
 
+    </fragment>
 
     <fragment
         android:id="@+id/characterFragment"
@@ -42,7 +45,6 @@
             app:destination="@id/signInFragment" />
     </fragment>
 
-
     <fragment
         android:id="@+id/signInFragment"
         android:name="com.example.lab3.SignInFragment"
@@ -62,4 +64,9 @@
             app:argType="com.example.lab3.User[]" />
     </fragment>
 
+    <!-- Добавляем новый фрагмент для настроек -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.lab3.SettingsFragment"
+        android:label="SettingsFragment" />
 </navigation>

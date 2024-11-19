@@ -5,4 +5,16 @@
     <string name="archive_button_description">Archive items</string>
     <string name="get_data_with_retrofit">Get data with Retrofit</string>
     <string name="get_data_with_ktor">Get data with Ktor</string>
+    <string name="settings">Настройки</string>
+    <string-array name="language_options">
+        <item>Русский</item>
+        <item>Английский</item>
+        <item>Немецкий</item>
+    </string-array>
+    <string name="save_file">Сохранить файл</string>
+    <string name="delete_file">Удалить файл</string>
+    <string name="backup_file">Резервная копия</string>
+    <string name="restore_file">Восстановить файл</string>
+    <string name="archive_description">Очистить список</string>
+
 </resources>

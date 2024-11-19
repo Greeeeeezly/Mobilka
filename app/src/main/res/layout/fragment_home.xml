@@ -13,11 +13,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp"/>
+
     <Button
         android:id="@+id/openCharacterFragmentButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Open Characters"
+        android:layout_margin="16dp"
+        app:layout_constraintBottom_toTopOf="@id/openSettingsFragmentButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Добавляем кнопку для перехода в SettingsFragment -->
+    <Button
+        android:id="@+id/openSettingsFragmentButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Settings"
         android:layout_margin="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
