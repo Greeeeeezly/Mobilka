@@ -6,7 +6,17 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.lab3.HomeFragment"
-        android:label="HomeFragment" />
+        android:label="HomeFragment">
+        <action
+            android:id="@+id/action_homeFragment_to_characterFragment"
+            app:destination="@id/characterFragment" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/characterFragment"
+        android:name="com.example.lab3.CharacterFragment"
+        android:label="CharacterFragment" />
 
     <fragment
         android:id="@+id/onboardFragment"

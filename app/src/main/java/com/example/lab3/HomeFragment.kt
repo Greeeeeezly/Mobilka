@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lab3.databinding.FragmentHomeBinding
 
@@ -16,12 +17,16 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Инициализация View Binding
         binding = FragmentHomeBinding.inflate(inflater, container, false)
 
         // Настройка RecyclerView
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = ChatAdapter(getChatItems())
+
+        // Переход в CharacterFragment по клику на кнопку
+        binding.openCharacterFragmentButton.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_characterFragment)
+        }
 
         return binding.root
     }
@@ -34,5 +39,4 @@ class HomeFragment : Fragment() {
             ChatItem("Василий", "Когда за пивом?", "17:10")
         )
     }
-
 }

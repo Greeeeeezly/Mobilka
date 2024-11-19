@@ -2,4 +2,7 @@
     <string name="app_name">lab3</string>
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="archive_button_description">Archive items</string>
+    <string name="get_data_with_retrofit">Get data with Retrofit</string>
+    <string name="get_data_with_ktor">Get data with Ktor</string>
 </resources>
