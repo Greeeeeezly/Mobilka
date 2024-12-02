@@ -7,10 +7,13 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.appcompat.widget.Toolbar
+import androidx.room.Room
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
+    lateinit var database: AppDatabase
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,6 +22,12 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
+
+        database = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "game_of_thrones.db"
+        ).build()
 
     }
 }

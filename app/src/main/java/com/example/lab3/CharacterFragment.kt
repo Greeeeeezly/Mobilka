@@ -1,5 +1,7 @@
 package com.example.lab3
 
+import CharacterViewModel
+import CharacterViewModelFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,45 +9,73 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.room.Room
 import com.example.lab3.databinding.FragmentCharacterBinding
 import com.example.lab3.network.ktor.KtorNetwork
 import com.example.lab3.network.ktor.KtorNetworkApi
 import com.example.lab3.network.retrofit.RetrofitNetwork
 import com.example.lab3.network.retrofit.RetrofitNetworkApi
-import com.example.lab3.FileUtils
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class CharacterFragment : Fragment() {
     private lateinit var binding: FragmentCharacterBinding
 
-    private var _retrofitApi: RetrofitNetworkApi? = null
-    private val retrofitApi get() = _retrofitApi!!
+    // Инициализация базы данных
+    private val database by lazy { AppDatabase.getDatabase(requireContext()) }
+    private val characterDao by lazy { database.characterDao() }
 
-    private var _ktorApi: KtorNetworkApi? = null
-    private val ktorApi get() = _ktorApi!!
+    // Инициализация сетевых клиентов Retrofit и Ktor
+    private val retrofitNetwork by lazy { RetrofitNetwork() }
+    private val ktorNetwork by lazy { KtorNetwork() }
 
-    // Добавляем переменные для сетевых клиентов
-    private var ktorNetwork: KtorNetwork? = null
-    private var retrofitNetwork: RetrofitNetwork? = null
+    private val retrofitApi: RetrofitNetworkApi by lazy { retrofitNetwork }
+    private val ktorApi: KtorNetworkApi by lazy { ktorNetwork }
 
-    // Имя файла для хранения списка персонажей
+    // Создание репозитория с передачей нужных зависимостей
+    private val repository: CharacterRepository by lazy {
+        CharacterRepository(characterDao, retrofitApi)
+    }
+
+    // Создание ViewModel с передачей репозитория через Factory
+    private val viewModel: CharacterViewModel by viewModels {
+        CharacterViewModelFactory(repository)
+    }
+
     private val fileName = "variant_8.txt"
+
+    // Состояние текущей страницы
+    private var currentPage = 1
+    private val pageSize = 50
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+        context?.deleteDatabase("character_database")
+
+        // Инициализируем базу данных заново
+        val database = Room.databaseBuilder(
+            requireContext().applicationContext,
+            AppDatabase::class.java,
+            "character_database"
+        ).build()
+
         binding = FragmentCharacterBinding.inflate(inflater, container, false)
 
-        // Инициализация Ktor и Retrofit
-        ktorNetwork = KtorNetwork()
-        retrofitNetwork = RetrofitNetwork()
+        fetchCharacters(currentPage)  // Инициализируем данные при создании фрагмента
 
-        _ktorApi = ktorNetwork
-        _retrofitApi = retrofitNetwork
+        // Кнопки для переключения страниц
+        binding.nextPageButton.setOnClickListener {
+            loadNextPage()
+        }
 
-        fetchCharacters()  // Инициализируем данные при создании фрагмента
+        binding.previousPageButton.setOnClickListener {
+            loadPreviousPage()
+        }
 
         binding.retrofit.setOnClickListener {
             fetchCharactersWithRetrofit()
@@ -59,45 +89,81 @@ class CharacterFragment : Fragment() {
             (binding.userList.adapter as ApiResponseAdapter).setData(emptyList())
         }
 
-        // Обработка кнопки сохранения файла
         binding.saveFileButton.setOnClickListener {
             saveCharactersToFile()
         }
 
-        // Обработка кнопки удаления файла
         binding.deleteFileButton.setOnClickListener {
             deleteFile()
         }
 
-        // Обработка кнопки резервного копирования файла
         binding.backupFileButton.setOnClickListener {
             backupFile()
         }
 
-        // Обработка кнопки восстановления файла
         binding.restoreFileButton.setOnClickListener {
             restoreFile()
+        }
+
+        val adapter = ApiResponseAdapter(emptyList())
+        binding.userList.adapter = adapter
+
+        lifecycleScope.launch {
+            viewModel.characters.collectLatest { entities ->
+                val characters = entities.map { it.toCharacter() }
+                adapter.setData(characters)
+            }
         }
 
         return binding.root
     }
 
-    private fun fetchCharacters() {
+    private fun fetchCharacters(page: Int) {
         lifecycleScope.launch {
             try {
-                val characters: List<Character> = retrofitApi.getCharacters(8, 50)  // Используем ваш класс Character
-                Log.d("CharacterFragment", "Characters fetched on create: $characters")
-                binding.userList.adapter = ApiResponseAdapter(characters)
+                // Проверяем, есть ли данные в базе для указанной страницы
+                val charactersFromDb = characterDao.getCharactersByPage(page, pageSize)
+
+                if (charactersFromDb.isEmpty()) {
+                    // Если данных нет в базе, загружаем их из API
+                    val characters: List<Character> = retrofitApi.getCharacters(page, pageSize)
+                    Log.d("CharacterFragment", "Characters fetched from API: $characters")
+
+                    // Сохраняем данные в базе
+                    characterDao.insertAll(characters.map { it.toEntity() })
+
+                    // Отображаем данные на экране
+                    binding.userList.adapter = ApiResponseAdapter(characters)
+
+                } else {
+                    // Если данные есть в базе, отображаем их
+                    val characters = charactersFromDb.map { it.toCharacter() }
+                    Log.d("CharacterFragment", "Characters fetched from DB: $characters")
+                    binding.userList.adapter = ApiResponseAdapter(characters)
+                }
             } catch (e: Exception) {
-                Log.e("CharacterFragment", "Error fetching characters on create: ${e.message}")
+                Log.e("CharacterFragment", "Error fetching characters: ${e.message}")
             }
+        }
+    }
+
+
+    private fun loadNextPage() {
+        currentPage++
+        fetchCharacters(currentPage)
+    }
+
+    private fun loadPreviousPage() {
+        if (currentPage > 1) {
+            currentPage--
+            fetchCharacters(currentPage)
         }
     }
 
     private fun fetchCharactersWithRetrofit() {
         lifecycleScope.launch {
             try {
-                val characters: List<Character> = retrofitApi.getCharacters(8, 50)
+                val characters: List<Character> = retrofitApi.getCharacters(currentPage, pageSize)
                 Log.d("CharacterFragment", "Characters received: $characters")
                 binding.userList.adapter = ApiResponseAdapter(characters)
             } catch (e: Exception) {
@@ -153,14 +219,10 @@ class CharacterFragment : Fragment() {
         }
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
-
-        // Закрытие Ktor HttpClient
-        ktorNetwork?.closeClient()
-
-        // Закрытие Retrofit OkHttpClient
-        retrofitNetwork?.closeClient()
+        context?.deleteDatabase("character_database")
+        ktorNetwork.closeClient()
+        retrofitNetwork.closeClient()
     }
 }
