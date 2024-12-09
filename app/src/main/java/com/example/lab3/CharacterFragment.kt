@@ -48,6 +48,7 @@ class CharacterFragment : Fragment() {
 
     // Состояние текущей страницы
     private var currentPage = 1
+    private var pagesCount = 1
     private val pageSize = 50
 
     override fun onCreateView(
@@ -118,35 +119,22 @@ class CharacterFragment : Fragment() {
         return binding.root
     }
 
-    private fun fetchCharacters(page: Int) {
+    private fun fetchCharacters(currentPage: Int) {
         lifecycleScope.launch {
             try {
-                // Проверяем, есть ли данные в базе для указанной страницы
-                val charactersFromDb = characterDao.getCharactersByPage(page, pageSize)
-
-                if (charactersFromDb.isEmpty()) {
-                    // Если данных нет в базе, загружаем их из API
-                    val characters: List<Character> = retrofitApi.getCharacters(page, pageSize)
-                    Log.d("CharacterFragment", "Characters fetched from API: $characters")
-
-                    // Сохраняем данные в базе
-                    characterDao.insertAll(characters.map { it.toEntity() })
-
-                    // Отображаем данные на экране
-                    binding.userList.adapter = ApiResponseAdapter(characters)
-
+                val characters = repository.getCharacters(currentPage, pageSize)
+                if (characters.isEmpty()) {
+                    binding.nextPageButton.isEnabled = false
                 } else {
-                    // Если данные есть в базе, отображаем их
-                    val characters = charactersFromDb.map { it.toCharacter() }
-                    Log.d("CharacterFragment", "Characters fetched from DB: $characters")
-                    binding.userList.adapter = ApiResponseAdapter(characters)
+                    binding.userList.adapter = ApiResponseAdapter(characters.map { it.toCharacter() })
+                    binding.nextPageButton.isEnabled = true
                 }
+                binding.previousPageButton.isEnabled = currentPage > 1
             } catch (e: Exception) {
                 Log.e("CharacterFragment", "Error fetching characters: ${e.message}")
             }
         }
     }
-
 
     private fun loadNextPage() {
         currentPage++
@@ -158,7 +146,9 @@ class CharacterFragment : Fragment() {
             currentPage--
             fetchCharacters(currentPage)
         }
+        // Кнопка будет включена или отключена в fetchCharacters в зависимости от страницы
     }
+
 
     private fun fetchCharactersWithRetrofit() {
         lifecycleScope.launch {
@@ -221,7 +211,7 @@ class CharacterFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        context?.deleteDatabase("character_database")
+        //context?.deleteDatabase("character_database")
         ktorNetwork.closeClient()
         retrofitNetwork.closeClient()
     }

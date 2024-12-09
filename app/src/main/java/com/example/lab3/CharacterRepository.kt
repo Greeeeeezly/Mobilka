@@ -21,8 +21,34 @@ class CharacterRepository(
                 playedBy = it.playedBy
             )
         }
-        //dao.deleteAllCharacters()
         dao.insertAll(entities)
     }
 
+    suspend fun getCharacterById(id: Int): CharacterEntity? {
+        return dao.getCharacterById(id)
+    }
+
+    suspend fun insertCharacter(character: CharacterEntity) {
+        dao.insertCharacter(character)
+    }
+
+    suspend fun updateCharacter(character: CharacterEntity) {
+        dao.updateCharacter(character)
+    }
+
+    suspend fun deleteCharacterById(id: Int): Int {
+        return dao.deleteCharacterById(id)
+    }
+    suspend fun getCharacters(page: Int, pageSize: Int): List<CharacterEntity> {
+        // Сначала пробуем получить данные из базы
+        val charactersFromDb = dao.getCharactersByPage(page, pageSize)
+        if (charactersFromDb.isEmpty()) {
+            // Если нет в базе, получаем данные из API
+            val characters = retrofitApi.getCharacters(page, pageSize)
+            // Сохраняем данные в базу
+            dao.insertAll(characters.map { it.toEntity() })
+            return characters.map { it.toEntity() }
+        }
+        return charactersFromDb
+    }
 }

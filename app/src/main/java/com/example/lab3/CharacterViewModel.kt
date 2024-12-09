@@ -32,4 +32,5 @@ class CharacterViewModel(private val repository: CharacterRepository) : ViewMode
             refreshCharacters(currentPage - 1)
         }
     }
+
 }
